@@ -106,7 +106,74 @@ def baselines(c):
     return jobs
 
 
-GRIDS = {"h1": h1, "h2": h2, "h3": h3, "robust": robust, "baselines": baselines}
+TUNINGS = {"ref": {}, "kcoh06": {"K_COH": 0.6}, "kcoh015": {"K_COH": 0.15}, "d0_4": {"D0": 4.0}, "cdead05": {"C_DEAD": 0.5}}
+
+
+def sens(c):
+    """Amendment 2: is the H1 outcome a property of the Phase 0 tuning? H1 reference cell under alternative
+    flock-rule constants, with the no-spoof gate checked per tuning."""
+    jobs = []
+    for name, m in TUNINGS.items():
+        for u in (5, 17, 30):
+            base = dict(flock={"anchors": 3, "gnss": 10, "followers": u, "n": 13 + u}, anchor={"stubbornness": c["stubbornness_h1"]}, model=m)
+            jobs.append((f"{name}_u{u}", base))
+            jobs.append((f"{name}_u{u}_nospoof", sc.merge(base, {"spoof": {"on": False}})))
+    return jobs
+
+
+def h2ctl(c):
+    """Amendment 2: spoof-off control for every H2 composition (omega = 2)."""
+    jobs = []
+    for n in c["h2_n"]:
+        for a in c["h2_anchors"]:
+            for g in c["h2_spoofed"]:
+                if a + g <= n:
+                    jobs.append((f"n{n}_a{a}_s{g}_nospoof", dict(flock={"n": n, "anchors": a, "gnss": g, "followers": n - a - g},
+                                                                anchor={"stubbornness": 2.0}, spoof={"on": False})))
+    return jobs
+
+
+def extra(c):
+    """Amendment 2: baselines the first grid lacked (all-GNSS own-navigation fallback, no-anchor flock,
+    GNSS-led radio leader, radio flock at the flock's omega) and H3's no-anchor / all-honest controls."""
+    f = {"anchors": 3, "gnss": 10, "followers": 37, "n": 50}
+    w = {"stubbornness": c["stubbornness_h1"]}
+    jobs = []
+    for on in (True, False):
+        t = f"spoof{int(on)}"
+        jobs.append((f"own_gnss_all_{t}", dict(flock={"anchors": 0, "gnss": 50, "followers": 0, "n": 50}, baseline="own_gnss", spoof={"on": on})))
+        jobs.append((f"noanchor_flock_{t}", dict(flock={"anchors": 0, "gnss": 10, "followers": 40, "n": 50}, spoof={"on": on})))
+        jobs.append((f"radio_flock_w2_{t}", dict(flock=f, anchor=w, baseline="radio_flock", radio={"available": True}, spoof={"on": on})))
+        jobs.append((f"radio_leader_gnss_ok_{t}", dict(flock=f, anchor=w, baseline="radio_leader", radio={"available": True, "leader": "gnss"}, spoof={"on": on})))
+        for fb in ("hold", "own_gnss", "return_home"):
+            jobs.append((f"radio_leader_gnss_jam_{fb}_{t}", dict(flock=f, anchor=w, baseline="radio_leader",
+                                                                  radio={"available": False, "fallback": fb, "leader": "gnss"}, spoof={"on": on})))
+    jobs.append(("h3_noanchor", dict(flock={"n": 50, "anchors": 0, "gnss": 20, "followers": 30})))
+    jobs.append(("h3_allhonest", dict(flock={"n": 50, "anchors": 0, "gnss": 23, "followers": 27}, spoof={"on": False})))
+    return jobs
+
+
+def robust2(c):
+    """Amendment 2: perturbations the first robustness grid lacked: detection noise 0.1 / 1.0 m, wind
+    opposite to the spoof direction, and the 4 m vision case with a 1,200 s horizon."""
+    pert = {"noise01": {"sensing": {"pos_noise_m": 0.1}}, "noise10": {"sensing": {"pos_noise_m": 1.0}},
+            "wind_opp": {"wind": {"mean_mps": [0.0, -1.0, 0.0], "turbulence": "light", "shared_fraction": 1.0}}}
+    jobs = []
+    for name, p in pert.items():
+        for u in c["robust_followers"]:
+            base = dict(flock={"anchors": 3, "gnss": 10, "followers": u, "n": 13 + u}, anchor={"stubbornness": c["stubbornness_h1"]})
+            jobs.append((f"{name}_u{u}", sc.merge(base, p)))
+            jobs.append((f"{name}_u{u}_nospoof", sc.merge(base, sc.merge(p, {"spoof": {"on": False}}))))
+    long4 = {"sensing": {"range_m": 4.0}, "mission": {"max_time_s": 1200.0}}
+    jobs.append(("range4long_a5_nospoof", sc.merge(dict(flock={"anchors": 5, "gnss": 0, "followers": 45, "n": 50}, spoof={"on": False}), long4)))
+    jobs.append(("range4long_u30", sc.merge(dict(flock={"anchors": 3, "gnss": 10, "followers": 30, "n": 43}, anchor={"stubbornness": c["stubbornness_h1"]}), long4)))
+    jobs.append(("range4long_u30_nospoof", sc.merge(dict(flock={"anchors": 3, "gnss": 10, "followers": 30, "n": 43}, anchor={"stubbornness": c["stubbornness_h1"]},
+                                                         spoof={"on": False}), long4)))
+    return jobs
+
+
+GRIDS = {"h1": h1, "h2": h2, "h3": h3, "robust": robust, "baselines": baselines,
+         "sens": sens, "h2ctl": h2ctl, "extra": extra, "robust2": robust2}
 
 
 def expand(grid, c, seeds, split):

@@ -80,6 +80,7 @@ ARRIVE_R, HOME_R = 20.0, 20.0
 STILL_V, STILL_T, STILL_MIN_T = 0.2, 10.0, 120.0
 ROLE_NAMES = ("anchor", "gnss", "follower")
 
+_DEFAULTS = {k: v for k, v in dict(globals()).items() if k.isupper() and isinstance(v, (int, float)) and not isinstance(v, bool)}
 _attrition_mask = getattr(wind, "attrition_mask", None) or getattr(vehicle, "attrition_mask")
 
 
@@ -111,6 +112,14 @@ def components(adj):
 class Flock:
     def __init__(self, scenario):
         s = self.s = scenario
+        # optional constant overrides for the tuning-sensitivity grid (scenario key "model"); the module
+        # constants are reset first, so one process can run many scenarios in sequence.
+        # ponytail: module-global swap, one Flock per process at a time; make constants per-instance if that ever changes
+        g_ = globals()
+        g_.update(_DEFAULTS)
+        for k_, v_ in s.get("model", {}).items():
+            assert k_ in _DEFAULTS, f"unknown model constant {k_}"
+            g_[k_] = v_
         f = s["flock"]
         n = self.n = f["n"]
         self.seed, self.dt = s["seed"], s["mission"]["dt_s"]
@@ -122,6 +131,8 @@ class Flock:
         self.goal, self.home = np.array(s["goal"], float), np.array(s["home"], float)
         self.fake_goal = np.array(sc.fake_goal(s), float)
         self.baseline = s.get("baseline", "none")
+        # radio leader: drone 0 ('first', an anchor when anchors > 0) or the first GNSS drone ('gnss')
+        self.leader = f["anchors"] if s["radio"].get("leader", "first") == "gnss" and f["gnss"] > 0 else 0
         self.adaptive = s["anchor"].get("adaptive", False)
         self.adaptive_rule = s["anchor"].get("adaptive_rule", "anchor_gain")
         self.w = np.where(self.role == 0, s["anchor"]["stubbornness"], np.where(self.role == 1, W_GNSS, 0.0))
@@ -251,7 +262,8 @@ class Flock:
         if radio and self.s["radio"]["available"]:
             inf_ = (self.role < 2) & self.alive
             if self.baseline == "radio_leader":
-                shared, sf = (g[0], fade[0]) if self.alive[0] else (np.zeros(3), 0.0)
+                L = self.leader
+                shared, sf = (g[L], fade[L]) if self.alive[L] else (np.zeros(3), 0.0)
             else:
                 wsum = (self.w * inf_).sum()
                 shared = ((self.w * inf_)[:, None] * g).sum(0) / wsum if wsum > 0 else np.zeros(3)

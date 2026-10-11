@@ -15,6 +15,7 @@ DEFAULT = {
     "wind": {"mean_mps": [0.0, 0.0, 0.0], "turbulence": "none", "shared_fraction": 1.0},
     "attrition": {"fraction": 0.0, "t_s": 60.0},
     "mission": {"max_time_s": 600.0, "dt_s": 0.02},
+    "baseline": "none",
 }
 ENUMS = {("world", "landscape"): {"meadow", "forest", "urban"}, ("flock", "rule"): {"topological", "metric", "zones"},
          ("radio", "fallback"): {"own_gnss", "hold", "return_home"}, ("anchor", "adaptive_rule"): {"anchor_gain", "follower_filter"},
