@@ -5,6 +5,7 @@ on:
       grid: {description: "h1 | h2 | h3 | robust | baselines", required: true}
       n_shards: {description: "number of parallel shards", required: true, default: "20"}
       seeds: {description: "a:b seed range (blank = config)", required: false, default: ""}
+      shards: {description: "comma list of shard indices to run (blank = all)", required: false, default: ""}
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -12,7 +13,7 @@ jobs:
       shards: ${{ steps.m.outputs.shards }}
     steps:
       - id: m
-        run: echo "shards=$(python3 -c "print(list(range(${{ inputs.n_shards }})))")" >> "$GITHUB_OUTPUT"
+        run: echo "shards=$(python3 -c "s='${{ inputs.shards }}'; print([int(x) for x in s.split(',')] if s.strip() else list(range(${{ inputs.n_shards }})))")" >> "$GITHUB_OUTPUT"
   run:
     needs: plan
     runs-on: ubuntu-latest
