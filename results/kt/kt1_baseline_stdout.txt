@@ -1,0 +1,13 @@
+[kt1_baseline] 8 cells x 50 seeds = 400 runs; probe 6.8 s/run -> ~5.6 min on 8 processes (upper bound: early stops are faster)
+[kt1_baseline] done in 16.7 min; 400 rows -> results/runs/kt1_baseline.parquet
+[kt1_baseline] summary -> results/kt/kt1_baseline.json
+condition              arrival                fragments              time_s                
+anchors=3              0.90 [0.81, 0.97]      1.02 [1.00, 1.06]      515
+anchors=5              1.00 [1.00, 1.00]      1.00 [1.00, 1.00]      460
+anchors=10             1.00 [1.00, 1.00]      1.00 [1.00, 1.00]      430
+anchors=15             1.00 [1.00, 1.00]      1.00 [1.00, 1.00]      420
+gnss=5                 1.00 [1.00, 1.00]      1.00 [1.00, 1.00]      460
+gnss=10                1.00 [1.00, 1.00]      1.00 [1.00, 1.00]      430
+own_gnss gnss=5        0.10 [0.10, 0.10]      2.00 [2.00, 2.00]      378
+own_gnss gnss=10       0.20 [0.20, 0.20]      2.00 [2.00, 2.00]      380
+15 minus 3 informed (paired): 0.10 [0.03, 0.19] | gate: {'arrival_ge_0.85_at_5_and_10': True, 'flat_3_to_15_lowerCI_ge_0.75': True}

@@ -1,0 +1,16 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+
+# internal notes, secrets, large inputs
+docs/
+CLAUDE.md
+.env
+data/raw/
+vendor/
+.claude/
+*.md
+!README.md

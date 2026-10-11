@@ -1,0 +1,55 @@
+{
+ "_meta": {
+  "about": "Flock-model additions to results/vehicle_params.json (sister-project file, unchanged). Tags: [opened] read from the opened source; DERIVED computed from opened numbers; ASSUMPTION engineering choice.",
+  "made_by": "scripts/extract_vehicle_params.py"
+ },
+ "max_tilt_rad": {
+  "value": 0.349066,
+  "unit": "rad",
+  "source": "https://github.com/bitcraze/crazyflie-firmware/blob/f6e0f0a3b526861328caf3296a7ecf00bb915d39/src/platform/interface/platform_defaults.h PID_VEL_ROLL_MAX = PID_VEL_PITCH_MAX = 20.0f",
+  "tag": "[opened]",
+  "note": "roll/pitch limit of the stock velocity controller"
+ },
+ "tau_att_s": {
+  "value": 0.16667,
+  "unit": "s",
+  "source": "https://github.com/bitcraze/crazyflie-firmware/blob/f6e0f0a3b526861328caf3296a7ecf00bb915d39/src/platform/interface/platform_defaults.h PID_ROLL_KP 6.0 (attitude P) over PID_ROLL_RATE_KP 250.0",
+  "tag": "[opened]/DERIVED",
+  "note": "closed-loop attitude ~ first order with tau = 1/Kp when the inner rate loop is much faster; approximation, not a measured step response"
+ },
+ "kv_per_s": {
+  "value": 4.28042,
+  "unit": "1/s",
+  "source": "https://github.com/bitcraze/crazyflie-firmware/blob/f6e0f0a3b526861328caf3296a7ecf00bb915d39/src/platform/interface/platform_defaults.h PID_VEL_X_KP 25.0f (deg per m/s)",
+  "tag": "[opened]/DERIVED",
+  "note": "small-angle conversion a = g*theta; P only (firmware also has KI 1.0)"
+ },
+ "drag_quad_Nsm2m2": {
+  "value": 0.0009188,
+  "unit": "N s^2/m^2",
+  "source": "ASSUMPTION: 0.5*rho*Cd*A, rho 1.225 kg/m^3, Cd 1.0, A 1.5e-3 m^2",
+  "tag": "ASSUMPTION",
+  "note": "body pressure drag |v|v on top of Förster's linear rotor drag (fitted at 2.25-4.25 m/s, so partly double-counted there); it bounds the terminal speed"
+ },
+ "v_cruise_mps": {
+  "value": 3.0,
+  "unit": "m/s",
+  "source": "ASSUMPTION",
+  "tag": "ASSUMPTION",
+  "note": "firmware position mode defaults to 1 m/s (PID_POS_VEL_X_MAX 1.0f, [opened]); 3 m/s finishes a 600 m leg in 200 s"
+ },
+ "v_max_mps": {
+  "value": 5.0,
+  "unit": "m/s",
+  "source": "ASSUMPTION",
+  "tag": "ASSUMPTION",
+  "note": "below the drag-limited terminal speed at max tilt (vehicle.py self-check)"
+ },
+ "thrust_max_check_N": {
+  "value": 0.568,
+  "unit": "N",
+  "source": "https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/functional-areas/pwm-to-thrust/ ('at 93.75% PWM the trust is about 58g')",
+  "tag": "[opened]",
+  "note": "cross-check only: whole-vehicle thrust at 93.75 % PWM; the model uses 4 f_max from the sister file (Förster eq. 3.3 at full command)"
+ }
+}

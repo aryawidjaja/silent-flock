@@ -1,0 +1,34 @@
+name: sweep
+on:
+  workflow_dispatch:
+    inputs:
+      grid: {description: "h1 | h2 | h3 | robust | baselines", required: true}
+      n_shards: {description: "number of parallel shards", required: true, default: "20"}
+      seeds: {description: "a:b seed range (blank = config)", required: false, default: ""}
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.m.outputs.shards }}
+    steps:
+      - id: m
+        run: echo "shards=$(python3 -c "print(list(range(${{ inputs.n_shards }})))")" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: |
+          S="${{ inputs.seeds }}"
+          uv run python scripts/sweep.py ${{ inputs.grid }} --shard ${{ matrix.shard }} --n-shards ${{ inputs.n_shards }} ${S:+--seeds $S}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.grid }}-${{ matrix.shard }}
+          path: results/runs/${{ inputs.grid }}__*.parquet

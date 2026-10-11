@@ -1,0 +1,239 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "silent-flock scenario (Contract 1)",
+ "type": "object",
+ "required": [
+  "seed",
+  "world",
+  "home",
+  "goal",
+  "flock",
+  "spoof",
+  "anchor",
+  "sensing",
+  "radio",
+  "wind",
+  "attrition",
+  "mission"
+ ],
+ "properties": {
+  "seed": {
+   "type": "integer"
+  },
+  "world": {
+   "type": "object",
+   "properties": {
+    "size_m": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "minItems": 2,
+     "maxItems": 2
+    },
+    "landscape": {
+     "enum": [
+      "meadow",
+      "forest",
+      "urban"
+     ]
+    },
+    "obstacle_density": {
+     "type": "number",
+     "minimum": 0
+    }
+   }
+  },
+  "home": {
+   "type": "array",
+   "items": {
+    "type": "number"
+   },
+   "minItems": 3,
+   "maxItems": 3
+  },
+  "goal": {
+   "type": "array",
+   "items": {
+    "type": "number"
+   },
+   "minItems": 3,
+   "maxItems": 3
+  },
+  "flock": {
+   "type": "object",
+   "properties": {
+    "n": {
+     "type": "integer",
+     "minimum": 1
+    },
+    "anchors": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "gnss": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "followers": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "rule": {
+     "enum": [
+      "topological",
+      "metric",
+      "zones"
+     ]
+    },
+    "k": {
+     "type": "integer",
+     "minimum": 1
+    },
+    "radius_m": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    }
+   }
+  },
+  "spoof": {
+   "type": "object",
+   "properties": {
+    "on": {
+     "type": "boolean"
+    },
+    "offset_m": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "minItems": 3,
+     "maxItems": 3
+    },
+    "start_s": {
+     "type": "number",
+     "minimum": 0
+    },
+    "ramp_s": {
+     "type": "number",
+     "minimum": 0
+    }
+   }
+  },
+  "anchor": {
+   "type": "object",
+   "properties": {
+    "stubbornness": {
+     "type": "number",
+     "minimum": 0
+    },
+    "adaptive": {
+     "type": "boolean"
+    },
+    "adaptive_rule": {
+     "enum": [
+      "anchor_gain",
+      "follower_filter"
+     ]
+    }
+   }
+  },
+  "sensing": {
+   "type": "object",
+   "properties": {
+    "range_m": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    },
+    "fov_deg": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 360
+    },
+    "occlusion": {
+     "type": "boolean"
+    },
+    "pos_noise_m": {
+     "type": "number",
+     "minimum": 0
+    }
+   }
+  },
+  "radio": {
+   "type": "object",
+   "properties": {
+    "available": {
+     "type": "boolean"
+    },
+    "fallback": {
+     "enum": [
+      "own_gnss",
+      "hold",
+      "return_home"
+     ]
+    }
+   }
+  },
+  "wind": {
+   "type": "object",
+   "properties": {
+    "mean_mps": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "minItems": 3,
+     "maxItems": 3
+    },
+    "turbulence": {
+     "enum": [
+      "none",
+      "light",
+      "moderate",
+      "severe"
+     ]
+    },
+    "shared_fraction": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1
+    }
+   }
+  },
+  "attrition": {
+   "type": "object",
+   "properties": {
+    "fraction": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1
+    },
+    "t_s": {
+     "type": "number",
+     "minimum": 0
+    }
+   }
+  },
+  "mission": {
+   "type": "object",
+   "properties": {
+    "max_time_s": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    },
+    "dt_s": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    }
+   }
+  },
+  "baseline": {
+   "enum": [
+    "none",
+    "own_gnss",
+    "radio_leader",
+    "radio_flock"
+   ]
+  }
+ }
+}
